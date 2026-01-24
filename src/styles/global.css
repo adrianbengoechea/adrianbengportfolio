@@ -1,8 +1,30 @@
-:root {
+/* :root {
   --bg: #0f172a;
   --fg: #e5e7eb;
   --accent: #38bdf8;
+} */
+
+/* :root {
+  --bg: rgba(207, 199, 210);
+  --fg: rgba(10, 9, 8);
+  --accent: rgba(111, 124, 18);
+} */
+
+/* :root {
+  --bg: rgba(254, 239, 221);
+  --fg: rgba(32, 30, 31);
+  --accent: rgba(255, 64, 0);
+} */
+
+:root {
+  --bg: rgba(4, 15, 22);
+  --fg: rgba(235, 242, 250);
+  --accent: rgba(255, 208, 70);
 }
+
+
+
+
 
 * {
   box-sizing: border-box;
@@ -25,7 +47,7 @@ a {
 }
 
 section {
-  padding: 6rem 1.5rem;
-  max-width: 1100px;
+  padding: 4rem 6rem;
+  max-width: initial;
   margin: auto;
 }
