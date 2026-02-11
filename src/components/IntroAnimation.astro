@@ -1,0 +1,139 @@
+---
+
+---
+
+<section>
+    <h2 class="h1">
+        <span id="typed-text"></span><span id="cursor" class="cursor blink">|</span>
+    </h2>
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const typedText = document.getElementById('typed-text')!;
+        const cursor = document.getElementById('cursor')!;
+
+        const segments = [
+            { text: "Adrian ", accent: false },
+            { text: "Beng",   accent: true  },
+        ];
+
+        const typingSpeed = 80;
+        const startDelay = 500;
+
+        let segIndex = 0;
+        let charIndex = 0;
+        let currentSpan: HTMLSpanElement | null = null;
+
+        function type() {
+            if (segIndex >= segments.length) {
+                cursor.classList.add('blink');
+                return;
+            }
+
+            
+
+            const seg = segments[segIndex];
+
+            if (charIndex === 0) {
+                currentSpan = document.createElement('span');
+                if (seg.accent) currentSpan.style.color = 'var(--accent)';
+                typedText.appendChild(currentSpan);
+            }
+
+            currentSpan!.textContent += seg.text[charIndex];
+            charIndex++;
+
+            if (charIndex >= seg.text.length) {
+                segIndex++;
+                charIndex = 0;
+            }
+
+            if( segIndex === segments.length - 1 && charIndex === seg.text.length - 1 ) {
+                
+                introAnimation();
+            }
+
+            setTimeout(type, typingSpeed);
+        }
+
+        setTimeout(type, startDelay);
+    });
+
+    const introAnimation = () => {
+        const section = document.querySelector('section')!;
+
+        setTimeout(() => {
+            document.body.classList.add('intro-finished');
+
+            const introTitle = section.querySelector('.h1')!;
+            const mainTitle = document.querySelector('#main-title')!;
+
+            const introRect = introTitle.getBoundingClientRect();
+            const mainRect = mainTitle.getBoundingClientRect();
+            const sectionRect = section.getBoundingClientRect();
+
+            // Account for scale 1.4 → 1.0: visual edges shift inward
+            const scaleShiftX = (introRect.width - introRect.width / 2.4) / 2;
+            const scaleShiftY = (introRect.height - introRect.height / 2.4) / 2;
+
+            // Target section position so intro h1 lands on main title
+            const targetTop = sectionRect.top + (mainRect.top - introRect.top) - scaleShiftY;
+            const targetLeft = sectionRect.left + (mainRect.left - introRect.left) - scaleShiftX;
+
+            // Switch from %-based to px-based positioning (no visual jump)
+            section.style.transition = 'none';
+            section.style.top = sectionRect.top + 'px';
+            section.style.left = sectionRect.left + 'px';
+            section.style.transform = 'none';
+
+            // Force reflow, then animate
+            section.offsetHeight;
+
+            section.style.transition = 'top 0.4s ease, left 0.39s ease';
+            section.style.top = targetTop + 'px';
+            section.style.left = targetLeft + 'px';
+        }, 1025);
+    }
+</script>
+
+<style>
+    section {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 3;
+
+        padding: 0;
+
+        opacity: 1;
+        visibility: visible;
+    }
+    section .h1{
+        transform: scale(2.4);
+    }
+    body.intro-finished section .h1{
+        transform: scale(1);
+        opacity: 0;
+        transition: transform 0.3s 0s ease, opacity 0.3s 0.6s ease;
+    }
+    body.intro-finished section .cursor{
+        opacity: 0;
+        transition: opacity 0.2s 0s ease;
+    }
+    .cursor {
+        font-weight: 400;
+        color: var(--accent);
+    }
+    .blink {
+        animation: blink 0.7s step-end infinite;
+    }
+    @keyframes blink {
+        50% { opacity: 0; }
+    }
+</style>
