@@ -1,0 +1,231 @@
+---
+
+---
+<nav>
+    <ul>
+        <div class="hover-indicator"></div>
+        <div class="active-indicator"></div>
+        <li class="active" data-section="about">
+            <a href="#about"><i class="fa-solid fa-user"></i><span>About Me</span></a>
+        </li>
+        <li data-section="experience"><a href="#experience"><i class="fa-solid fa-briefcase"></i><span>Experience</span></a></li>
+        <li data-section="projects"><a href="#projects"><i class="fa-solid fa-diagram-project"></i><span>Projects</span></a></li>
+        <li data-section="contact"><a href="#contact"><i class="fa-solid fa-envelope"></i><span>Contact</span></a></li>
+    </ul>
+</nav>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const nav = document.querySelector('nav')!;
+        const ul = nav.querySelector('ul')!;
+        const items = ul.querySelectorAll<HTMLLIElement>('li[data-section]');
+        const hoverIndicator = ul.querySelector('.hover-indicator') as HTMLElement;
+        const activeIndicator = ul.querySelector('.active-indicator') as HTMLElement;
+
+        const sectionNames = ['about', 'experience', 'projects', 'contact'];
+        let scrollLocked = false;
+        let scrollLockTimer: ReturnType<typeof setTimeout>;
+
+        function positionIndicator(indicator: HTMLElement, li: Element) {
+            const ulRect = ul.getBoundingClientRect();
+            const liRect = li.getBoundingClientRect();
+            indicator.style.top = (liRect.top - ulRect.top) + 'px';
+            indicator.style.height = liRect.height + 'px';
+            indicator.style.width = liRect.width + 'px';
+        }
+
+        function setActive(sectionName: string) {
+            items.forEach(item => item.classList.remove('active'));
+            const target = ul.querySelector(`li[data-section="${sectionName}"]`);
+            if (target) {
+                target.classList.add('active');
+                positionIndicator(activeIndicator, target);
+                activeIndicator.style.opacity = '1';
+            }
+        }
+
+        // Position active indicator on load
+        const activeLi = ul.querySelector('li.active');
+        if (activeLi) {
+            positionIndicator(activeIndicator, activeLi);
+            activeIndicator.style.opacity = '1';
+        }
+
+        // Hover: show & move glassy indicator
+        items.forEach(li => {
+            li.addEventListener('mouseenter', () => {
+                positionIndicator(hoverIndicator, li);
+                hoverIndicator.style.opacity = '1';
+            });
+
+            // Click: smooth-scroll to section, lock scroll-spy during animation
+            li.addEventListener('click', (e) => {
+                e.preventDefault();
+                const section = li.dataset.section;
+                if (!section) return;
+
+                // Lock scroll-spy so it doesn't fight the smooth scroll
+                scrollLocked = true;
+                clearTimeout(scrollLockTimer);
+                scrollLockTimer = setTimeout(() => {
+                    scrollLocked = false;
+                    currentSection = section;
+                }, 800);
+
+                setActive(section);
+
+                const anchor = document.querySelector(`a[name="${section}"]`) as HTMLElement;
+                if (anchor) {
+                    anchor.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+
+        // Hide hover indicator when leaving nav
+        ul.addEventListener('mouseleave', () => {
+            hoverIndicator.style.opacity = '0';
+        });
+
+        // Scroll-spy via scroll listener + rAF throttle
+        const anchors = sectionNames
+            .map(name => document.querySelector(`a[name="${name}"]`))
+            .filter(Boolean) as HTMLElement[];
+
+        const sections = anchors.map(a => a.closest('section')).filter(Boolean) as HTMLElement[];
+
+        const sectionToName = new Map<HTMLElement, string>();
+        anchors.forEach((a, i) => {
+            const section = sections[i];
+            if (section) sectionToName.set(section, a.getAttribute('name')!);
+        });
+
+        let currentSection = '';
+        let ticking = false;
+
+        function updateActiveOnScroll() {
+            if (scrollLocked) {
+                ticking = false;
+                return;
+            }
+
+            // Reference line at 30% from the top of the viewport
+            const trigger = window.innerHeight * 0.3;
+            let active = sectionNames[0]; // default to first
+
+            for (let i = sections.length - 1; i >= 0; i--) {
+                const rect = sections[i].getBoundingClientRect();
+                if (rect.top <= trigger) {
+                    active = sectionToName.get(sections[i]) || active;
+                    break;
+                }
+            }
+
+            if (active !== currentSection) {
+                currentSection = active;
+                setActive(active);
+            }
+
+            ticking = false;
+        }
+
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                ticking = true;
+                requestAnimationFrame(updateActiveOnScroll);
+            }
+        }, { passive: true });
+
+        // Run once on load
+        updateActiveOnScroll();
+    });
+</script>
+
+<style>
+    nav{
+        margin: 5rem 0 auto;
+    }
+    nav ul{
+        position: relative;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    /* Sliding indicators */
+    .hover-indicator,
+    .active-indicator{
+        position: absolute;
+        top: 0;
+        left: 0;
+        border-radius: 0.5rem;
+        pointer-events: none;
+        opacity: 0;
+    }
+    .hover-indicator{
+        background: rgba(243, 244, 246, 0.17);
+        backdrop-filter: blur(8px);
+        z-index: 0;
+        transition: top 0.25s ease, opacity 0.25s ease, width 0.25s ease, height 0.25s ease;
+    }
+    .active-indicator{
+        background: var(--light);
+        z-index: 0;
+        transition: top 0.25s ease, opacity 0.25s ease, width 0.25s ease, height 0.25s ease;
+    }
+
+    /* Links */
+    nav li{
+        position: relative;
+        z-index: 1;
+        max-width: 300px;
+    }
+    nav li a{
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.6rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.9rem;
+        transition: color 0.3s ease;
+        max-width: 300px;
+    }
+    nav li a i{
+        width: 1.75rem;
+        text-align: center;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    /* Text hidden by default */
+    nav li a span{
+        display: inline-block;
+        /* max-width: 0; */
+        overflow: hidden;
+        white-space: nowrap;
+        opacity: 1;
+        transition: max-width 0.35s ease, opacity 0.3s ease;
+    }
+
+    /* Show text: on nav hover (all items) */
+    nav:hover li a span{
+        max-width: 300px;
+        opacity: 1;
+    }
+
+    /* Show text: active item always visible */
+    nav li.active a span{
+        max-width: 300px;
+        opacity: 1;
+    }
+
+    /* Active item text & icon color */
+    nav li.active a,
+    nav li.active a i{
+        color: var(--bg);
+        transition: color 0.3s 0.1s ease;
+        font-weight: 600;
+    }
+</style>
