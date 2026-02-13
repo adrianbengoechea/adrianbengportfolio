@@ -19,7 +19,7 @@
                 <img src={props.thumbnail.src} alt={props.name} />
             </figure>
             <div class="project-card--details">
-                <h2>{props.name}</h2>
+                <h2>{props.name} <i class="fa-solid fa-arrow-up-right-from-square"></i></h2>
                 <p>{props.description}</p>
                 <small class="project-card--date">{props.date}</small>
             </div>
@@ -71,6 +71,10 @@
     .project-card--details{}
     .project-card--details h2{
         font-size: 1.25rem;
+    }
+
+    .project-card--details h2 i{
+        font-size: 1rem;
     }
 
     .project-card--details p:first-of-type {
